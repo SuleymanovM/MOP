@@ -1,0 +1,63 @@
+;*********************************************************
+; Макросы для учебного примера лабораторной работы N 1    *
+; по МОП. 10.09.02: Негода В.Н.                           *
+;*********************************************************
+
+; Макрос вывода строки LINE 
+PUTL    MACRO LINE
+        LEA   SI,   LINE
+	XOR   CX,   CX
+	XOR   DX,   DX
+	XOR   AX,   AX	
+        CALL  PUTSS
+        ENDM
+
+; Макрос вывода строки LINE с задержкой PAUSE
+PUTLS   MACRO LINE
+	XOR   AX,   AX	
+        LEA   SI,   LINE
+	MOV   DX,   PAUSE
+	MOV   CX,   PAUSE+2
+        CALL  PUTSS
+        ENDM
+
+; Как и PUTLS, но с центрированием посередине
+PUTLSC  MACRO LINE
+	LOCAL LO, NOMARG
+	LEA   SI,   LINE
+	CALL  SLEN
+	MOV   CX, 80
+	SUB   CX, AX
+	SAR   CX,  1
+	JZ    NOMARG	
+LO:	MOV   AL, ' '
+	CALL  PUTC
+	LOOP  LO
+NOMARG:	PUTLS LINE
+        ENDM
+
+; Макрос фиксации начала измерения времени
+; Заносит в стек младшее слово числа тактов системных часов
+FIXTIME	MACRO
+	DB	0Fh, 31h; Команда RDTSC чтения счетчика тактов
+	PUSH	EDX
+	PUSH	EAX
+	ENDM
+
+; Макрос получения в <EDX,EAX> числа тактов, прошедших с последнего
+; момента фиксации времени. Извлекает продукт FIXTIME из стека
+DURAT	MACRO
+	DB	0Fh, 31h; Команда RDTSC чтения счетчика тактов
+	POP	EBX
+	SUB	EAX,	EBX
+	POP	EBX
+	SBB	EDX,	EBX
+	ENDM
+
+; Макрос завершения программы
+EXIT	MACRO
+        MOV     AH, FUEXIT
+        MOV     AL, 0  
+        INT     DOSFU
+        ENDM
+	

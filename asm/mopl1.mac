@@ -1,0 +1,102 @@
+;********************************************
+; Макросы для лабораторной работы №1 по МОП *
+;********************************************
+
+; Макрос вывода строки LINE 
+PUTL MACRO LINE
+	lea si, LINE
+	xor cx, cx
+	xor dx, dx
+	xor ax, ax
+	call PUTSS
+ENDM
+
+; Макрос вывода строки LINE с задержкой PAUSE
+PUTLS MACRO LINE
+	xor ax, ax
+	lea si, LINE
+	mov dx, PAUSE
+	mov cx, PAUSE+2
+	call PUTSS
+ENDM
+
+; Как и PUTLS, но с центрированием посередине
+PUTLSC MACRO LINE
+	LOCAL LO, NOMARG
+	lea si, LINE
+	call SLEN
+	mov cx, 80
+	sub cx, ax
+	sar cx, 1
+	jz NOMARG
+	
+	LO:
+		mov al, ' '
+		call PUTC
+		loop LO
+
+	NOMARG:
+		PUTLS LINE
+ENDM
+
+PUTCRLF MACRO
+	mov al, CHCR
+	call PUTC
+	mov al, CHLF
+	call PUTC
+ENDM
+
+; Макрос фиксации начала измерения времени
+; Заносит в стек младшее слово числа тактов системных часов
+FIXTIME	MACRO
+	db 0Fh, 31h    ; Команда RDTSC чтения счетчика тактов
+	push edx
+	push eax
+ENDM
+
+; Макрос получения в <EDX,EAX> числа тактов, прошедших с последнего
+; момента фиксации времени. Извлекает продукт FIXTIME из стека
+DURAT MACRO
+	db	0Fh, 31h    ; Команда RDTSC чтения счетчика тактов
+	pop ebx
+	sub eax, ebx
+	pop ebx
+	sbb edx, ebx
+ENDM
+
+; Макрос завершения программы
+EXIT MACRO
+	mov ah, FUEXIT
+	mov al, 0  
+	int DOSFU
+ENDM
+
+;=============================================
+EXTRACT_BIT MACRO SRC, DST, OFFSET
+	mov eax, SRC
+	shr eax, OFFSET
+	and eax, 1
+	mov DST, al
+ENDM
+
+COLLECT MACRO ARRAY, LEN
+	mov cx, LEN
+	lea di, ARRAY
+	call COLLECTOR
+ENDM
+
+CONVERT MACRO ARRAY, LEN
+	mov cx, LEN
+	lea di, ARRAY
+	xor ax, ax
+	xor bx, bx
+	call CONVERTER
+ENDM
+
+PRINT MACRO NUMBER, BASE
+	mov eax, NUMBER
+	mov cx, BASE
+	mov bx, 0
+	call PRINTER
+ENDM
+
